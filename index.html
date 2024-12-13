@@ -1,0 +1,2485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Small Multiples: Rose Charts with Sonification</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap');
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            background-color: #F8F7E3;
+        }
+        .chart-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 15px;
+        }
+        .chart-title {
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        svg {
+            display: block;
+        }
+        button {
+        margin-top: 5px;
+        padding: 5px 10px;
+        font-size: 12px;
+        cursor: pointer;
+        background-color: #ffffff;
+        border: 2px solid #FFD099;
+        border-radius: 8px; /* Adjust value for desired roundness */
+        color: #333; /* Adjust text color for better contrast */
+    }
+        .tooltip {
+            position: absolute;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 5px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+    </style>
+</head>
+<body>
+    <div class="tooltip"></div>
+    <script>
+        const dummyData = [
+            {
+                "county": "ALBA",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 16,
+        "value": 7.5
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 16,
+        "value": 3.7
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 16,
+        "value": 3837
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 10,
+        "value": 262.98
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 13,
+        "value": 2.89
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 23,
+        "value": 2.04
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 9,
+        "value": 61542.22
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 11,
+        "value": 31.98
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 29,
+        "value": 15.28
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 30,
+        "value": 18.78
+      }
+    ]
+  },
+  {
+    "county": "ARAD",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 12,
+        "value": 8.1
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 29,
+        "value": 1.1
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 17,
+        "value": 3823
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 25,
+        "value": 238.89
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 12,
+        "value": 3.77
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 12,
+        "value": 3.12
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 11,
+        "value": 56379.48
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 9,
+        "value": 35.26
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 11,
+        "value": 180.52
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 19,
+        "value": 36.92
+      }
+    ]
+  },
+  {
+    "county": "ARGEȘ",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 20,
+        "value": 6.8
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 17,
+        "value": 3.5
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 9,
+        "value": 4106
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 13,
+        "value": 255.59
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 15,
+        "value": 2.51
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 13,
+        "value": 2.8
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 12,
+        "value": 53396.4
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 10,
+        "value": 34.68
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 5,
+        "value": 554
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 26,
+        "value": 22.61
+      }
+    ]
+  },
+  {
+    "county": "BACĂU",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 13,
+        "value": 8
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 23,
+        "value": 2.8
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 14,
+        "value": 3948
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 28,
+        "value": 231.24
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 20,
+        "value": 1.75
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 30,
+        "value": 1.79
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 33,
+        "value": 39970.66
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 31,
+        "value": 23.78
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 38,
+        "value": 3.06
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 25,
+        "value": 24.64
+      }
+    ]
+  },
+  {
+    "county": "BIHOR",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 4,
+        "value": 9.2
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 28,
+        "value": 1.2
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 23,
+        "value": 3609
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 22,
+        "value": 241.93
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 9,
+        "value": 5.05
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 7,
+        "value": 4.67
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 18,
+        "value": 48649.24
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 6,
+        "value": 40.78
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 26,
+        "value": 26.78
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 16,
+        "value": 39.84
+      }
+    ]
+  },
+  {
+    "county": "BISTRIȚA-NĂSĂUD",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 4,
+        "value": 9.2
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 19,
+        "value": 3.2
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 36,
+        "value": 3447
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 38,
+        "value": 204.52
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 25,
+        "value": 0.77
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 31,
+        "value": 1.72
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 30,
+        "value": 42288.9
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 13,
+        "value": 31.4
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 12,
+        "value": 93.48
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 37,
+        "value": 8.95
+      }
+    ]
+  },
+  {
+    "county": "BOTOȘANI",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 10,
+        "value": 8.3
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 21,
+        "value": 3
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 40,
+        "value": 3430
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 40,
+        "value": 196.95
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 39,
+        "value": 0
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 32,
+        "value": 1.7
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 40,
+        "value": 30831.72
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 42,
+        "value": 13.81
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 39,
+        "value": 1.62
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 10,
+        "value": 55.82
+      }
+    ]
+  },
+  {
+    "county": "BRAȘOV",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 6,
+        "value": 8.9
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 26,
+        "value": 2.2
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 6,
+        "value": 4404
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 7,
+        "value": 265.53
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 7,
+        "value": 6.27
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 10,
+        "value": 3.68
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 4,
+        "value": 70349.96
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 5,
+        "value": 44.8
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 8,
+        "value": 331.85
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 35,
+        "value": 11.26
+      }
+    ]
+  },
+  {
+    "county": "BRĂILA",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 24,
+        "value": 6.2
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 19,
+        "value": 3.2
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 37,
+        "value": 3446
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 6,
+        "value": 273.96
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 30,
+        "value": 0.41
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 24,
+        "value": 2.04
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 21,
+        "value": 45493.17
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 27,
+        "value": 25.61
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 28,
+        "value": 18.76
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 5,
+        "value": 73.31
+      }
+    ]
+  },
+  {
+    "county": "BUZĂU",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 21,
+        "value": 6.7
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 8,
+        "value": 5.3
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 25,
+        "value": 3595
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 8,
+        "value": 265.3
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 31,
+        "value": 0.4
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 35,
+        "value": 1.55
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 28,
+        "value": 43136.43
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 25,
+        "value": 26.79
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 27,
+        "value": 21.88
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 14,
+        "value": 43.24
+      }
+    ]
+  },
+  {
+    "county": "CARAȘ-SEVERIN",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 22,
+        "value": 6.5
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 24,
+        "value": 2.6
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 28,
+        "value": 3573
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 3,
+        "value": 276.91
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 23,
+        "value": 0.8
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 22,
+        "value": 2.09
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 24,
+        "value": 44945.83
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 36,
+        "value": 21.22
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 41,
+        "value": 0
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 39,
+        "value": 8.57
+      }
+    ]
+  },
+  {
+    "county": "CLUJ",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 7,
+        "value": 8.8
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 28,
+        "value": 1.2
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 2,
+        "value": 5344
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 12,
+        "value": 255.84
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 1,
+        "value": 15.82
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 3,
+        "value": 6.49
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 2,
+        "value": 86443.8
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 3,
+        "value": 58.83
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 6,
+        "value": 523.22
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 32,
+        "value": 16.27
+      }
+    ]
+  },
+  {
+    "county": "CONSTANȚA",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 12,
+        "value": 8.1
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 25,
+        "value": 2.3
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 11,
+        "value": 4028
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 29,
+        "value": 227.28
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 8,
+        "value": 5.44
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 8,
+        "value": 4.41
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 6,
+        "value": 67985.23
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 7,
+        "value": 39.35
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 14,
+        "value": 75.01
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 9,
+        "value": 62.89
+      }
+    ]
+  },
+  {
+    "county": "COVASNA",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 9,
+        "value": 8.4
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 13,
+        "value": 4
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 31,
+        "value": 3529
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 31,
+        "value": 224.75
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 33,
+        "value": 0.34
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 21,
+        "value": 2.09
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 23,
+        "value": 44952.34
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 32,
+        "value": 23.29
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 20,
+        "value": 45.08
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 28,
+        "value": 21.39
+      }
+    ]
+  },
+  {
+    "county": "CĂLĂRAȘI",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 14,
+        "value": 7.9
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 10,
+        "value": 4.8
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 24,
+        "value": 3602
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 37,
+        "value": 207.05
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 34,
+        "value": 0.18
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 40,
+        "value": 1.25
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 39,
+        "value": 34513.94
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 38,
+        "value": 19.9
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 22,
+        "value": 37.51
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 3,
+        "value": 77.85
+      }
+    ]
+  },
+  {
+    "county": "DOLJ",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 15,
+        "value": 7.6
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 3,
+        "value": 7.3
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 12,
+        "value": 4018
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 23,
+        "value": 241.44
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 6,
+        "value": 6.39
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 6,
+        "value": 6.14
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 19,
+        "value": 47665.54
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 18,
+        "value": 29.35
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 13,
+        "value": 85.88
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 7,
+        "value": 64.43
+      }
+    ]
+  },
+  {
+    "county": "DÂMBOVIȚA",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 18,
+        "value": 7.2
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 22,
+        "value": 2.9
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 21,
+        "value": 3672
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 30,
+        "value": 225.93
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 21,
+        "value": 1.54
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 42,
+        "value": 1.22
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 27,
+        "value": 43416.9
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 34,
+        "value": 21.91
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 17,
+        "value": 55.16
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 18,
+        "value": 38.49
+      }
+    ]
+  },
+  {
+    "county": "GALAȚI",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 17,
+        "value": 7.4
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 6,
+        "value": 6
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 18,
+        "value": 3822
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 14,
+        "value": 254.73
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 10,
+        "value": 4.9
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 14,
+        "value": 2.5
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 29,
+        "value": 42838.09
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 24,
+        "value": 27.5
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 19,
+        "value": 45.9
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 6,
+        "value": 65.08
+      }
+    ]
+  },
+  {
+    "county": "GIURGIU",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 17,
+        "value": 7.4
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 18,
+        "value": 3.3
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 19,
+        "value": 3772
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 39,
+        "value": 199.32
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 39,
+        "value": 0
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 41,
+        "value": 1.23
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 41,
+        "value": 29426.41
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 28,
+        "value": 24.51
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 37,
+        "value": 4.37
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 2,
+        "value": 78.37
+      }
+    ]
+  },
+  {
+    "county": "GORJ",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 23,
+        "value": 6.4
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 17,
+        "value": 3.5
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 13,
+        "value": 3975
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 11,
+        "value": 259.03
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 14,
+        "value": 2.72
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 15,
+        "value": 2.45
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 10,
+        "value": 57514.64
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 26,
+        "value": 26.45
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 32,
+        "value": 7.76
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 34,
+        "value": 13.48
+      }
+    ]
+  },
+  {
+    "county": "HARGHITA",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 4,
+        "value": 9.2
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 11,
+        "value": 4.4
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 34,
+        "value": 3490
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 21,
+        "value": 244.85
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 24,
+        "value": 0.77
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 20,
+        "value": 2.1
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 26,
+        "value": 44280.21
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 21,
+        "value": 28.36
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 35,
+        "value": 6.64
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 41,
+        "value": 6.68
+      }
+    ]
+  },
+  {
+    "county": "HUNEDOARA",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 24,
+        "value": 6.2
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 13,
+        "value": 4
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 35,
+        "value": 3474
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 1,
+        "value": 337.75
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 18,
+        "value": 1.87
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 11,
+        "value": 3.29
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 20,
+        "value": 47526.84
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 19,
+        "value": 29.32
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 15,
+        "value": 70.22
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 40,
+        "value": 7.04
+      }
+    ]
+  },
+  {
+    "county": "IALOMIȚA",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 9,
+        "value": 8.4
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 9,
+        "value": 5
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 22,
+        "value": 3618
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 35,
+        "value": 210.04
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 39,
+        "value": 0
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 39,
+        "value": 1.42
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 31,
+        "value": 41602.07
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 37,
+        "value": 20.85
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 40,
+        "value": 1.05
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 1,
+        "value": 81.32
+      }
+    ]
+  },
+  {
+    "county": "IAȘI",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 3,
+        "value": 9.6
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 20,
+        "value": 3.1
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 5,
+        "value": 4568
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 41,
+        "value": 194.08
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 3,
+        "value": 10.92
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 5,
+        "value": 6.34
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 14,
+        "value": 51890.22
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 15,
+        "value": 30.25
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 7,
+        "value": 377.9
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 12,
+        "value": 46.54
+      }
+    ]
+  },
+  {
+    "county": "ILFOV",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 14,
+        "value": 7.9
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 32,
+        "value": 0.4
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 4,
+        "value": 4602
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 42,
+        "value": 135.23
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 37,
+        "value": 0.07
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 26,
+        "value": 1.97
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 5,
+        "value": 68160.02
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 2,
+        "value": 63.09
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 3,
+        "value": 1283.34
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 17,
+        "value": 39.29
+      }
+    ]
+  },
+  {
+    "county": "MARAMUREȘ",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 14,
+        "value": 7.9
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 27,
+        "value": 1.9
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 29,
+        "value": 3562
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 20,
+        "value": 245.04
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 17,
+        "value": 1.88
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 19,
+        "value": 2.13
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 25,
+        "value": 44517.31
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 16,
+        "value": 30.2
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 33,
+        "value": 6.95
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 38,
+        "value": 8.9
+      }
+    ]
+  },
+  {
+    "county": "MEHEDINȚI",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 26,
+        "value": 5.9
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 4,
+        "value": 6.8
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 33,
+        "value": 3502
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 18,
+        "value": 250.15
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 19,
+        "value": 1.78
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 17,
+        "value": 2.21
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 32,
+        "value": 41545.17
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 41,
+        "value": 17.36
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 41,
+        "value": 0
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 20,
+        "value": 31.99
+      }
+    ]
+  },
+  {
+    "county": "MUNICIPIUL BUCUREȘTI",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 8,
+        "value": 8.7
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 30,
+        "value": 1
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 1,
+        "value": 6053
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 5,
+        "value": 274.73
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 2,
+        "value": 15.26
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 1,
+        "value": 10.45
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 1,
+        "value": 162900.92
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 1,
+        "value": 74.07
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 1,
+        "value": 1553.76
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 42,
+        "value": 0.3
+      }
+    ]
+  },
+  {
+    "county": "MUREȘ",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 6,
+        "value": 8.9
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 19,
+        "value": 3.2
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 10,
+        "value": 4041
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 19,
+        "value": 247.41
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 11,
+        "value": 3.83
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 4,
+        "value": 6.39
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 13,
+        "value": 52555.45
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 12,
+        "value": 31.52
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 21,
+        "value": 39.11
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 22,
+        "value": 28.8
+      }
+    ]
+  },
+  {
+    "county": "NEAMȚ",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 15,
+        "value": 7.6
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 14,
+        "value": 3.9
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 30,
+        "value": 3542
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 15,
+        "value": 252.88
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 38,
+        "value": 0.04
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 28,
+        "value": 1.88
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 35,
+        "value": 39275.14
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 33,
+        "value": 22.89
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 18,
+        "value": 47.89
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 24,
+        "value": 27.08
+      }
+    ]
+  },
+  {
+    "county": "OLT",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 20,
+        "value": 6.8
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 5,
+        "value": 6.1
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 15,
+        "value": 3877
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 24,
+        "value": 241.2
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 32,
+        "value": 0.35
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 25,
+        "value": 2
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 34,
+        "value": 39512.09
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 35,
+        "value": 21.74
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 23,
+        "value": 36.11
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 8,
+        "value": 63.01
+      }
+    ]
+  },
+  {
+    "county": "PRAHOVA",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 19,
+        "value": 7
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 26,
+        "value": 2.2
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 8,
+        "value": 4162
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 4,
+        "value": 274.89
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 22,
+        "value": 1.38
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 29,
+        "value": 1.79
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 8,
+        "value": 61662.78
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 14,
+        "value": 31.09
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 25,
+        "value": 28.41
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 21,
+        "value": 29.66
+      }
+    ]
+  },
+  {
+    "county": "SATU MARE",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 13,
+        "value": 8
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 15,
+        "value": 3.8
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 27,
+        "value": 3587
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 32,
+        "value": 222.15
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 29,
+        "value": 0.46
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 27,
+        "value": 1.88
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 22,
+        "value": 45041.04
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 23,
+        "value": 27.51
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 30,
+        "value": 11.23
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 11,
+        "value": 51.28
+      }
+    ]
+  },
+  {
+    "county": "SIBIU",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 5,
+        "value": 9
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 25,
+        "value": 2.3
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 7,
+        "value": 4392
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 16,
+        "value": 251.62
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 5,
+        "value": 6.55
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 9,
+        "value": 3.99
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 7,
+        "value": 63344.92
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 8,
+        "value": 38.15
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 4,
+        "value": 1203.35
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 33,
+        "value": 13.84
+      }
+    ]
+  },
+  {
+    "county": "SUCEAVA",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 1,
+        "value": 11.2
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 7,
+        "value": 5.5
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 26,
+        "value": 3588
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 36,
+        "value": 208.59
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 16,
+        "value": 2.5
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 36,
+        "value": 1.54
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 38,
+        "value": 35492.76
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 29,
+        "value": 24.47
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 24,
+        "value": 29.92
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 29,
+        "value": 20.97
+      }
+    ]
+  },
+  {
+    "county": "SĂLAJ",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 2,
+        "value": 10
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 9,
+        "value": 5
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 20,
+        "value": 3690
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 17,
+        "value": 251.03
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 28,
+        "value": 0.48
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 18,
+        "value": 2.15
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 15,
+        "value": 51790.41
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 17,
+        "value": 29.49
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 31,
+        "value": 9.16
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 31,
+        "value": 16.89
+      }
+    ]
+  },
+  {
+    "county": "TELEORMAN",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 25,
+        "value": 6
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 2,
+        "value": 8.3
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 41,
+        "value": 3353
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 9,
+        "value": 264.63
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 26,
+        "value": 0.62
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 37,
+        "value": 1.47
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 36,
+        "value": 38086.34
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 39,
+        "value": 19.53
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 36,
+        "value": 5.89
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 4,
+        "value": 76.38
+      }
+    ]
+  },
+  {
+    "county": "TIMIȘ",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 9,
+        "value": 8.4
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 31,
+        "value": 0.8
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 3,
+        "value": 4910
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 27,
+        "value": 232.33
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 4,
+        "value": 9.71
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 2,
+        "value": 8.84
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 3,
+        "value": 77395.8
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 4,
+        "value": 46.29
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 2,
+        "value": 1326.59
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 15,
+        "value": 41.98
+      }
+    ]
+  },
+  {
+    "county": "TULCEA",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 21,
+        "value": 6.7
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 13,
+        "value": 4
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 32,
+        "value": 3525
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 26,
+        "value": 235.98
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 35,
+        "value": 0.17
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 33,
+        "value": 1.69
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 16,
+        "value": 51696.21
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 20,
+        "value": 28.49
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 9,
+        "value": 214.72
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 23,
+        "value": 27.52
+      }
+    ]
+  },
+  {
+    "county": "VASLUI",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 11,
+        "value": 8.2
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 1,
+        "value": 8.4
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 38,
+        "value": 3446
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 34,
+        "value": 216.38
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 39,
+        "value": 0
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 38,
+        "value": 1.43
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 42,
+        "value": 28032.87
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 40,
+        "value": 17.84
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 16,
+        "value": 56.95
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 13,
+        "value": 43.86
+      }
+    ]
+  },
+  {
+    "county": "VRANCEA",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 16,
+        "value": 7.5
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 12,
+        "value": 4.3
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 42,
+        "value": 3344
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 33,
+        "value": 217.79
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 36,
+        "value": 0.14
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 34,
+        "value": 1.56
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 37,
+        "value": 37900.25
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 30,
+        "value": 24.17
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 34,
+        "value": 6.93
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 27,
+        "value": 22.56
+      }
+    ]
+  },
+  {
+    "county": "VÂLCEA",
+    "rankings": [
+      {
+        "indicator": "Rata natalității (născuți vii/1000 loc.)",
+        "rank": 26,
+        "value": 5.9
+      },
+      {
+        "indicator": "Rata șomajului (%)",
+        "rank": 18,
+        "value": 3.3
+      },
+      {
+        "indicator": "Câștigul salarial mediu net (lei)",
+        "rank": 39,
+        "value": 3435
+      },
+      {
+        "indicator": "Număr de pensionari/1000 loc.",
+        "rank": 2,
+        "value": 282.23
+      },
+      {
+        "indicator": "Absolvenți de studii superioare (licență)/1000 loc.",
+        "rank": 27,
+        "value": 0.51
+      },
+      {
+        "indicator": "Medici/1000 loc.",
+        "rank": 16,
+        "value": 2.36
+      },
+      {
+        "indicator": "PIB/capita",
+        "rank": 17,
+        "value": 48746.24
+      },
+      {
+        "indicator": "Întreprinderi/1000 loc.",
+        "rank": 22,
+        "value": 27.55
+      },
+      {
+        "indicator": "Cheltuieli de cercetare/capita (lei)",
+        "rank": 10,
+        "value": 198.47
+      },
+      {
+        "indicator": "% Suprafața cultivată/suprafața județului",
+        "rank": 36,
+        "value": 9.52
+      }
+    ]
+            }
+        ];
+
+        const radius = 90;
+        const outerSegments = 42;
+        const colorScale = d3.scaleSequential(d3.interpolatePlasma).domain([outerSegments, 1]); // Reversed domain
+        const tooltip = d3.select(".tooltip");
+
+        // Create a container for each county chart
+        const container = d3.select("body")
+            .selectAll(".chart-container")
+            .data(dummyData)
+            .enter()
+            .append("div")
+            .attr("class", "chart-container");
+
+        // Add a title for each chart
+        container.append("div")
+            .attr("class", "chart-title")
+            .text(d => d.county);
+
+        // Add an SVG for each chart
+        const svg = container.append("svg")
+            .attr("width", 2 * radius + 30)
+            .attr("height", 2 * radius + 30)
+            .append("g")
+            .attr("transform", `translate(${radius + 15},${radius + 15})`);
+
+        // Add a Play button for each chart
+        container.append("button")
+            .text("Play")
+            .on("click", function(event, d) {
+                playSonification(d, this);
+            });
+
+        // Draw each rose chart
+        svg.each(function(d) {
+            const sectionGroup = d3.select(this);
+
+            d.rankings.forEach((ranking, i) => {
+                const section = sectionGroup.append("g")
+                    .attr("class", `section-${i}`)
+                    .style("cursor", "pointer"); // Set cursor to pointer on hover
+
+                const startAngle = (i / d.rankings.length) * 2 * Math.PI;
+                const endAngle = ((i + 1) / d.rankings.length) * 2 * Math.PI;
+
+                for (let j = 0; j < outerSegments; j++) {
+                    const isColored = j < ranking.rank;
+                    section.append("path")
+                        .datum({ startAngle, endAngle, ...ranking, sectionIndex: i, segmentIndex: j })
+                        .attr("d", d3.arc()
+                            .innerRadius(radius * (0.2 + j / outerSegments))
+                            .outerRadius(radius * (0.2 + (j + 1) / outerSegments))
+                            .startAngle(startAngle)
+                            .endAngle(endAngle)
+                        )
+                        .attr("fill", isColored ? colorScale(j + 1) : "#F8F7E3")
+                        .attr("stroke", "#E3E3E3")
+                        .attr("stroke-width", 0.4);
+                }
+
+                section
+                    .on("mouseover", function(event) {
+                        tooltip.style("opacity", 1)
+                            .html(`<b>${ranking.indicator}:</b> ${ranking.value}<br><b>Poziție în ierarhia națională:</b> ${ranking.rank}`)
+                            .style("left", `${event.pageX + 10}px`)
+                            .style("top", `${event.pageY + 10}px`);
+
+                        // Fade other sections
+                        sectionGroup.selectAll("g")
+                            .attr("opacity", 0.3);
+                        d3.select(this).attr("opacity", 1); // Highlight the hovered section
+                    })
+                    .on("mouseout", function() {
+                        tooltip.style("opacity", 0);
+
+                        // Restore opacity for all sections
+                        sectionGroup.selectAll("g")
+                            .attr("opacity", 1);
+                    });
+            });
+        });
+
+        const playSonification = (data, button) => {
+            const svg = d3.select(button.previousElementSibling).select("g");
+
+            const highlightSegment = (sectionIndex, rank) => {
+                svg.selectAll("path")
+                    .attr("stroke", d =>
+                        d.sectionIndex === sectionIndex && d.segmentIndex === rank - 1
+                            ? "#FFFFFF"
+                            : "#E3E3E3"
+                    )
+                    .attr("stroke-width", d =>
+                        d.sectionIndex === sectionIndex && d.segmentIndex === rank - 1
+                            ? 2.5
+                            : 0.5
+                    );
+            };
+
+            data.rankings.forEach((ranking, sectionIndex) => {
+                setTimeout(() => {
+                    highlightSegment(sectionIndex, ranking.rank);
+
+                    const audio = new Audio(`./mp3s/${ranking.rank}.mp3`);
+                    audio.currentTime = 0;
+                    audio.play().catch(err => console.error(`Audio playback failed for rank ${ranking.rank}: ${err}`));
+                }, sectionIndex * 300);
+            });
+        };
+    </script>
+</body>
+</html>
