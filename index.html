@@ -30,7 +30,7 @@
             background: #F8F7E3;
             padding: 15px;
             border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.007);
         }
 
         .chart-title {
@@ -2392,10 +2392,9 @@
 
         const radius = 90;
         const outerSegments = 42;
-        const colorScale = d3.scaleSequential(d3.interpolatePlasma).domain([outerSegments, 1]); // Reversed domain
+        const colorScale = d3.scaleSequential(d3.interpolatePlasma).domain([outerSegments, 1]);
         const tooltip = d3.select(".tooltip");
 
-        // Create a container for each county chart
         const container = d3.select("body")
             .selectAll(".chart-container")
             .data(dummyData)
@@ -2403,33 +2402,29 @@
             .append("div")
             .attr("class", "chart-container");
 
-        // Add a title for each chart
         container.append("div")
             .attr("class", "chart-title")
             .text(d => d.county);
 
-        // Add an SVG for each chart
         const svg = container.append("svg")
             .attr("width", 2 * radius + 30)
             .attr("height", 2 * radius + 30)
             .append("g")
             .attr("transform", `translate(${radius + 15},${radius + 15})`);
 
-        // Add a Play button for each chart
         container.append("button")
             .text("Play")
             .on("click", function(event, d) {
                 playSonification(d, this);
             });
 
-        // Draw each rose chart
         svg.each(function(d) {
             const sectionGroup = d3.select(this);
 
             d.rankings.forEach((ranking, i) => {
                 const section = sectionGroup.append("g")
                     .attr("class", `section-${i}`)
-                    .style("cursor", "pointer"); // Set cursor to pointer on hover
+                    .style("cursor", "pointer");
 
                 const startAngle = (i / d.rankings.length) * 2 * Math.PI;
                 const endAngle = ((i + 1) / d.rankings.length) * 2 * Math.PI;
@@ -2456,23 +2451,29 @@
                             .style("left", `${event.pageX + 10}px`)
                             .style("top", `${event.pageY + 10}px`);
 
-                        // Fade other sections
                         sectionGroup.selectAll("g")
                             .attr("opacity", 0.3);
-                        d3.select(this).attr("opacity", 1); // Highlight the hovered section
+                        d3.select(this).attr("opacity", 1);
                     })
                     .on("mouseout", function() {
                         tooltip.style("opacity", 0);
-
-                        // Restore opacity for all sections
-                        sectionGroup.selectAll("g")
-                            .attr("opacity", 1);
+                        sectionGroup.selectAll("g").attr("opacity", 1);
                     });
             });
         });
 
         const playSonification = (data, button) => {
             const svg = d3.select(button.previousElementSibling).select("g");
+            const audioCache = {};
+
+            const preloadAudio = (rank) => {
+                if (!audioCache[rank]) {
+                    const audio = new Audio(`./mp3s/${rank}.mp3`);
+                    audioCache[rank] = audio;
+                }
+            };
+
+            data.rankings.forEach(ranking => preloadAudio(ranking.rank));
 
             const highlightSegment = (sectionIndex, rank) => {
                 svg.selectAll("path")
@@ -2489,12 +2490,15 @@
             };
 
             data.rankings.forEach((ranking, sectionIndex) => {
-                setTimeout(() => {
-                    highlightSegment(sectionIndex, ranking.rank);
+                const audio = audioCache[ranking.rank];
 
-                    const audio = new Audio(`./mp3s/${ranking.rank}.mp3`);
+                setTimeout(() => {
                     audio.currentTime = 0;
-                    audio.play().catch(err => console.error(`Audio playback failed for rank ${ranking.rank}: ${err}`));
+                    audio.play()
+                        .then(() => {
+                            requestAnimationFrame(() => highlightSegment(sectionIndex, ranking.rank));
+                        })
+                        .catch(err => console.error(`Audio playback failed for rank ${ranking.rank}: ${err}`));
                 }, sectionIndex * 300);
             });
         };
